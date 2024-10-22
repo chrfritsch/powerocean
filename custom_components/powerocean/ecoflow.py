@@ -274,6 +274,10 @@ class Ecoflow:
                 # default uid, unit and descript
                 unique_id = f"{self.sn}_{report}_{key}"
 
+                # Make energy_stream_loadPwr positive
+                if key == "loadPwr":
+                    value = abs(value)
+
                 data[unique_id] = PowerOceanEndPoint(
                     internal_unique_id=unique_id,
                     serial=self.sn,
