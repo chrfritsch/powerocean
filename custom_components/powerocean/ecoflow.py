@@ -196,6 +196,7 @@ class Ecoflow:
     def _get_sensors(self, response):
         # get sensors from response['data']
         # sensors = self.__get_sensors_data(response)
+        sensors = dict()
 
         # get sensors from 'JTS1_ENERGY_STREAM_REPORT'
         sensors = self.__get_sensors_energy_stream(
