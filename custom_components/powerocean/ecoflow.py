@@ -33,7 +33,8 @@ class Ecoflow:
         self.device = None
         self.session = requests.Session()
         self.url_iot_app = "https://api.ecoflow.com/auth/login"
-        self.url_user_fetch = f"https://api-e.ecoflow.com/provider-service/user/device/detail?sn={self.sn}"
+        self.url_user_fetch = f"https://api-e.ecoflow.com/provider-service/user/device/detail?sn={
+            self.sn}"
         # self.authorize()  # authorize user and get device details
 
     def get_device(self):
@@ -68,7 +69,8 @@ class Ecoflow:
             response = self.get_json_response(request)
 
         except ConnectionError:
-            error = f"Unable to connect to {self.url_iot_app}. Device might be offline."
+            error = f"Unable to connect to {
+                self.url_iot_app}. Device might be offline."
             _LOGGER.warning(error + ISSUE_URL_ERROR_MESSAGE)
             raise IntegrationError(error)
 
@@ -78,7 +80,8 @@ class Ecoflow:
             user_name = response["data"]["user"].get("name", "<no user name>")
             auth_ok = True
         except KeyError as key:
-            raise Exception(f"Failed to extract key {key} from response: {response}")
+            raise Exception(f"Failed to extract key {
+                            key} from response: {response}")
 
         _LOGGER.info("Successfully logged in: %s", {user_name})
 
@@ -100,7 +103,8 @@ class Ecoflow:
                 f"Failed to extract key {key} from {json_loads(request.text)}"
             )
         except Exception as error:
-            raise Exception(f"Failed to parse response: {request.text} Error: {error}")
+            raise Exception(f"Failed to parse response: {
+                            request.text} Error: {error}")
 
         if response_message.lower() != "success":
             raise Exception(f"{response_message}")
@@ -116,7 +120,8 @@ class Ecoflow:
         url = self.url_user_fetch
         try:
             headers = {"authorization": f"Bearer {self.token}"}
-            request = requests.get(self.url_user_fetch, headers=headers, timeout=30)
+            request = requests.get(self.url_user_fetch,
+                                   headers=headers, timeout=30)
             response = self.get_json_response(request)
 
             _LOGGER.debug(f"{response}")
@@ -124,12 +129,14 @@ class Ecoflow:
             return self._get_sensors(response)
 
         except ConnectionError:
-            error = f"ConnectionError in fetch_data: Unable to connect to {url}. Device might be offline."
+            error = f"ConnectionError in fetch_data: Unable to connect to {
+                url}. Device might be offline."
             _LOGGER.warning(error + ISSUE_URL_ERROR_MESSAGE)
             raise IntegrationError(error)
 
         except RequestException as e:
-            error = f"RequestException in fetch_data: Error while fetching data from {url}: {e}"
+            error = f"RequestException in fetch_data: Error while fetching data from {
+                url}: {e}"
             _LOGGER.warning(error + ISSUE_URL_ERROR_MESSAGE)
             raise IntegrationError(error)
 
@@ -188,20 +195,21 @@ class Ecoflow:
 
     def _get_sensors(self, response):
         # get sensors from response['data']
-        sensors = self.__get_sensors_data(response)
+        # sensors = self.__get_sensors_data(response)
 
         # get sensors from 'JTS1_ENERGY_STREAM_REPORT'
-        # sensors = self.__get_sensors_energy_stream(response, sensors)  # is currently not in use
+        sensors = self.__get_sensors_energy_stream(
+            response, sensors)  # is currently not in use
 
         # get sensors from 'JTS1_EMS_CHANGE_REPORT'
         # siehe parameter_selected.json    #  get bpSoc from ems_change
         sensors = self.__get_sensors_ems_change(response, sensors)
 
         # get info from batteries  => JTS1_BP_STA_REPORT
-        sensors = self.__get_sensors_battery(response, sensors)
+        # sensors = self.__get_sensors_battery(response, sensors)
 
         # get info from PV strings  => JTS1_EMS_HEARTBEAT
-        sensors = self.__get_sensors_ems_heartbeat(response, sensors)
+        # sensors = self.__get_sensors_ems_heartbeat(response, sensors)
 
         return sensors
 
@@ -250,34 +258,34 @@ class Ecoflow:
         return sensors
 
     # Note, this report is currently not in use. Sensors are taken from response['data']
-    # def __get_sensors_energy_stream(self, response, sensors):
-    #     report = "JTS1_ENERGY_STREAM_REPORT"
-    #     d = response["data"]["quota"][report]
-    #     prefix = (
-    #         "_".join(report.split("_")[1:3]).lower() + "_"
-    #     )  # used to construct sensor name
-    #
-    #     # sens_all = ['bpSoc', 'mpptPwr', 'updateTime', 'bpPwr', 'sysLoadPwr', 'sysGridPwr']
-    #     sens_select = d.keys()
-    #     data = {}
-    #     for key, value in d.items():
-    #         if key in sens_select:  # use only sensors in sens_select
-    #             # default uid, unit and descript
-    #             unique_id = f"{self.sn}_{report}_{key}"
-    #
-    #             data[unique_id] = PowerOceanEndPoint(
-    #                 internal_unique_id=unique_id,
-    #                 serial=self.sn,
-    #                 name=f"{self.sn}_{prefix+key}",
-    #                 friendly_name=prefix + key,
-    #                 value=value,
-    #                 unit=self.__get_unit(key),
-    #                 description=self.__get_description(key),
-    #                 icon=None,
-    #             )
-    #     dict.update(sensors, data)
-    #
-    #     return sensors
+    def __get_sensors_energy_stream(self, response, sensors):
+        report = "JTS1_ENERGY_STREAM_REPORT"
+        d = response["data"]["quota"][report]
+        prefix = (
+            "_".join(report.split("_")[1:3]).lower() + "_"
+        )  # used to construct sensor name
+
+        # sens_all = ['bpSoc', 'mpptPwr', 'updateTime', 'bpPwr', 'sysLoadPwr', 'sysGridPwr']
+        sens_select = d.keys()
+        data = {}
+        for key, value in d.items():
+            if key in sens_select:  # use only sensors in sens_select
+                # default uid, unit and descript
+                unique_id = f"{self.sn}_{report}_{key}"
+
+                data[unique_id] = PowerOceanEndPoint(
+                    internal_unique_id=unique_id,
+                    serial=self.sn,
+                    name=f"{self.sn}_{prefix+key}",
+                    friendly_name=prefix + key,
+                    value=value,
+                    unit=self.__get_unit(key),
+                    description=self.__get_description(key),
+                    icon=None,
+                )
+        dict.update(sensors, data)
+
+        return sensors
 
     def __get_sensors_ems_change(self, response, sensors):
         report = "JTS1_EMS_CHANGE_REPORT"
@@ -427,7 +435,8 @@ class Ecoflow:
                 )
 
         # special for mpptPv
-        n_strings = len(d["mpptHeartBeat"][0]["mpptPv"])  # TODO: auch als Sensor?
+        # TODO: auch als Sensor?
+        n_strings = len(d["mpptHeartBeat"][0]["mpptPv"])
         mpptpvs = []
         for i in range(1, n_strings + 1):
             mpptpvs.append(f"mpptPv{i}")
