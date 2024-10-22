@@ -165,15 +165,15 @@ class Ecoflow:
         # TODO: hier könnte man noch mehr definieren bzw ein translation dict erstellen +1
         # Comment: Ich glaube hier brauchen wir n
         description = key  # default description
-        if key == "sysLoadPwr":
+        if key == "sysLoadPwr" or key == "energy_stream_loadPwr":
             description = "Hausnetz"
-        if key == "sysGridPwr":
+        if key == "sysGridPwr" or key == "energy_stream_gridPwr":
             description = "Stromnetz"
-        if key == "mpptPwr":
+        if key == "mpptPwr" or key == "energy_stream_pvPwr":
             description = "Solarertrag"
-        if key == "bpPwr":
+        if key == "bpPwr" or key == "energy_stream_bpPwr":
             description = "Batterieleistung"
-        if key == "bpSoc":
+        if key == "bpSoc" or key == "energy_stream_bpSoc":
             description = "Ladezustand der Batterie"
         if key == "online":
             description = "Online"
@@ -273,6 +273,10 @@ class Ecoflow:
             if key in sens_select:  # use only sensors in sens_select
                 # default uid, unit and descript
                 unique_id = f"{self.sn}_{report}_{key}"
+
+                # Make value positive for power values
+                if key.endswith("Pwr"):
+                    value = abs(value)
 
                 data[unique_id] = PowerOceanEndPoint(
                     internal_unique_id=unique_id,
